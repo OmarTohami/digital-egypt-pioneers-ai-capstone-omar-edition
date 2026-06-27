@@ -1,0 +1,10 @@
+streamlit
+opencv-python
+mediapipe
+numpy
+tensorflow
+gTTS
+pygame
+speechrecognition
+matplotlib
+pillow
