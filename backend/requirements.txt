@@ -6,3 +6,5 @@ mediapipe==0.10.33
 tensorflow==2.18.0
 numpy==1.26.4
 python-multipart==0.0.9
+faster-whisper
+soundfile
