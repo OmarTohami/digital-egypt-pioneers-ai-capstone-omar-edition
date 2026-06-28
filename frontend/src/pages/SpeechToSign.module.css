@@ -1,0 +1,220 @@
+.root {
+  min-height: 100vh;
+  padding: 24px 32px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title {
+  flex: 1;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #e8eaf0);
+  margin: 0;
+}
+
+.langSelect {
+  background: #1e2333;
+  color: #c4b5fd;
+  border: 1px solid #3730a3;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Record */
+.recordSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.recordBtn {
+  padding: 16px 40px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #6d28d9;
+  background: #1e2333;
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recordBtn:hover { background: #2e2060; }
+
+.recordBtnActive {
+  background: #6d28d9;
+  color: #fff;
+  border-color: #a78bfa;
+}
+
+.pulse {
+  font-size: 14px;
+  color: #a78bfa;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.transcript {
+  background: #1a2e1a;
+  border: 1px solid #22c55e;
+  border-radius: 10px;
+  padding: 12px 20px;
+  color: #86efac;
+  font-size: 15px;
+  text-align: center;
+  max-width: 600px;
+}
+
+.transcriptError {
+  background: #2e1a1a;
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  padding: 12px 20px;
+  color: #fca5a5;
+  font-size: 15px;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Manual */
+.manualRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.manualLabel {
+  font-size: 12px;
+  color: #6b7280;
+  letter-spacing: 1px;
+}
+
+.manualInputRow {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.input {
+  flex: 1;
+  background: #1e2333;
+  border: 1px solid #2e3650;
+  border-radius: 8px;
+  color: #e8eaf0;
+  padding: 10px 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.input:focus { border-color: #6d28d9; }
+
+/* Display */
+.display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeletonCard {
+  background: #161b27;
+  border: 1px solid #2a2f3d;
+  border-radius: 18px;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 340px;
+}
+
+.skeletonLabel {
+  font-family: 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #a78bfa;
+  letter-spacing: 4px;
+}
+
+.noData {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.progress {
+  font-size: 13px;
+  color: #6b7280;
+  letter-spacing: 1px;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* Strip */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.stripTile {
+  background: #1e2333;
+  border: 1px solid #2e3650;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.stripTile:hover { background: #2a2060; }
+
+.stripActive {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #fff;
+}
+
+.stripMissing { color: #ef4444; border-color: #7f1d1d; }
+
+/* Empty */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 20px;
+  color: #374151;
+}
+
+.empty span { font-size: 48px; }
+.empty p    { font-size: 15px; }
