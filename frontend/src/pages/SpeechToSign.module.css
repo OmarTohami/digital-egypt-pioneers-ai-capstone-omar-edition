@@ -22,15 +22,7 @@
   margin: 0;
 }
 
-.langSelect {
-  background: #1e2333;
-  color: #c4b5fd;
-  border: 1px solid #3730a3;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
+
 
 /* Record */
 .recordSection {

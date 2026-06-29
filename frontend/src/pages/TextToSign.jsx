@@ -23,7 +23,11 @@ export default function TextToSign() {
   // ── Fetch landmarks for each letter in the typed word ─────────────────────
   async function fetchLandmarks(text, language) {
     setLoading(true)
-    const chars = text.toUpperCase().split('').filter(c => /[A-Z\u0600-\u06FF ]/.test(c))
+    // For Arabic, keep characters as-is (toUpperCase corrupts Arabic glyphs)
+    // For English, uppercase and keep only A-Z letters and spaces
+    const chars = language === 'ar'
+      ? text.split('').filter(c => /[\u0600-\u06FF ]/.test(c))
+      : text.toUpperCase().split('').filter(c => /[A-Z ]/.test(c))
     const results = []
 
     for (const ch of chars) {

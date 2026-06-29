@@ -52,7 +52,6 @@ class HandTracker:
         mp_image = Image(image_format=ImageFormat.SRGB, data=rgb_frame)
         detection_result = self.detector.detect(mp_image)
         landmarks = np.zeros(126, dtype=np.float32)
-        annotated_frame = frame.copy()
 
         if detection_result.hand_landmarks:
             for i, hand_landmarks in enumerate(detection_result.hand_landmarks[:2]):
@@ -63,13 +62,4 @@ class HandTracker:
                 start = i * 63
                 landmarks[start:start + 63] = flat
 
-            # Draw dots on the annotated frame (uses raw, un-normalized
-            # coordinates -- this is just for on-screen visualization and
-            # is unrelated to the feature vector returned above)
-            for hand_landmarks in detection_result.hand_landmarks[:2]:
-                for landmark in hand_landmarks:
-                    x = int(landmark.x * frame.shape[1])
-                    y = int(landmark.y * frame.shape[0])
-                    cv2.circle(annotated_frame, (x, y), 3, (0, 255, 0), -1)
-
-        return landmarks, annotated_frame
+        return landmarks

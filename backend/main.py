@@ -63,12 +63,55 @@ AR_LANDMARKS = load_reference_landmarks(
 print(f"✅ EN landmark refs: {len(EN_LANDMARKS)} letters")
 print(f"✅ AR landmark refs: {len(AR_LANDMARKS)} letters")
 
+# Maps Arabic Unicode characters → ARSL model label strings
+AR_CHAR_TO_LABEL = {
+    'ع': 'ain',
+    'ال': 'al',
+    'أ': 'aleff',
+    'ا': 'aleff',   # plain alef also maps to aleff
+    'ب': 'bb',
+    'د': 'dal',
+    'ظ': 'dha',
+    'ض': 'dhad',
+    'ف': 'fa',
+    'ق': 'gaaf',
+    'غ': 'ghain',
+    'ه': 'ha',
+    'ح': 'haa',
+    'ج': 'jeem',
+    'ك': 'kaaf',
+    'خ': 'khaa',
+    'لا': 'la',
+    'ل': 'laam',
+    'م': 'meem',
+    'ن': 'nun',
+    'ر': 'ra',
+    'ص': 'saad',
+    'س': 'seen',
+    'ش': 'sheen',
+    'ط': 'ta',
+    'ت': 'taa',
+    'ث': 'thaa',
+    'ذ': 'thal',
+    'ة': 'toot',
+    'و': 'waw',
+    'ى': 'ya',
+    'ي': 'yaa',
+    'ز': 'zay',
+}
+
 
 # ── REST: Text-to-Sign ────────────────────────────────────────────────────────
 @app.get("/landmarks/{lang}/{letter}")
 def get_landmarks_ref(lang: str, letter: str):
     db = EN_LANDMARKS if lang == "en" else AR_LANDMARKS
-    vec = db.get(letter.upper()) or db.get(letter)
+    # For Arabic, resolve the character to the model's label key
+    if lang == "ar":
+        label = AR_CHAR_TO_LABEL.get(letter) or AR_CHAR_TO_LABEL.get(letter.upper())
+        key = label if label else letter
+    else:
+        key = letter.upper()
+    vec = db.get(key) or db.get(key.lower())
     if vec is None:
         return {"found": False, "landmarks": []}
     return {"found": True, "landmarks": vec}
@@ -85,9 +128,10 @@ def get_letters(lang: str):
 async def sign_to_text_ws(websocket: WebSocket):
     """
     Client → { lang, frame: <base64 jpeg> }
-    Server → { letter, conf, annotated_frame: <base64 jpeg with green dots> }
-    The server draws green landmark dots directly on the frame (same as
-    the working Streamlit version) and sends the annotated image back.
+    Server → { letter, conf }
+    The server detects hand landmarks and returns the predicted letter
+    and confidence. No annotated frame is sent back — the frontend
+    displays its own live camera feed.
     """
     await websocket.accept()
     loop = asyncio.get_event_loop()
@@ -118,36 +162,21 @@ async def sign_to_text_ws(websocket: WebSocket):
                 continue
 
             def process():
-                # ... existing frame processing ...
-                landmarks, annotated = tracker.get_landmarks(frame)
+                landmarks = tracker.get_landmarks(frame)
                 has_hand = bool(np.any(landmarks))
-
-                # Debug: save a frame if no hands detected, to see what the server is seeing
-                if not hasattr(process, 'last_debug_time'):
-                    process.last_debug_time = 0
-                import time
-                if not has_hand and time.time() - process.last_debug_time > 5:
-                    cv2.imwrite(f"debug_frame_{int(time.time())}.jpg", frame)
-                    process.last_debug_time = time.time()
 
                 if has_hand:
                     letter, conf = predictor.predict(landmarks)
                 else:
                     letter, conf = None, 0.0
 
-                # Encode annotated frame (with green dots) as base64 jpeg
-                _, buf = cv2.imencode('.jpg', annotated, [
-                                      cv2.IMWRITE_JPEG_QUALITY, 80])
-                frame_b64 = base64.b64encode(buf).decode('utf-8')
+                return letter, float(conf)
 
-                return frame_b64, letter, float(conf)
-
-            frame_b64, letter, conf = await loop.run_in_executor(None, process)
+            letter, conf = await loop.run_in_executor(None, process)
 
             await websocket.send_text(json.dumps({
-                "letter":          letter,
-                "conf":            conf,
-                "annotated_frame": frame_b64,
+                "letter": letter,
+                "conf":   conf,
             }))
 
     except WebSocketDisconnect:
