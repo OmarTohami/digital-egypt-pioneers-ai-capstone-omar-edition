@@ -2,20 +2,54 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import LangToggle   from '../components/LangToggle'
 import LetterBuffer from '../components/LetterBuffer'
+import { useApp }   from '../context/AppContext'
 import styles from './SignToText.module.css'
 
 const STREAK_THRESHOLD = 10    // frames to hold a sign
 const GRACE_FRAMES     = 4     // frames of "nothing" before streak resets
 const WS_URL           = 'ws://localhost:8000/ws/sign-to-text'
 
+// Maps ARSL model labels → Arabic characters
+const AR_LABEL_TO_CHAR = {
+  ain:   'ع',
+  al:    'ال',
+  aleff: 'أ',
+  bb:    'ب',
+  dal:   'د',
+  dha:   'ظ',
+  dhad:  'ض',
+  fa:    'ف',
+  gaaf:  'ق',
+  ghain: 'غ',
+  ha:    'ه',
+  haa:   'ح',
+  jeem:  'ج',
+  kaaf:  'ك',
+  khaa:  'خ',
+  la:    'لا',
+  laam:  'ل',
+  meem:  'م',
+  nun:   'ن',
+  ra:    'ر',
+  saad:  'ص',
+  seen:  'س',
+  sheen: 'ش',
+  ta:    'ط',
+  taa:   'ت',
+  thaa:  'ث',
+  thal:  'ذ',
+  toot:  'ة',
+  waw:   'و',
+  ya:    'ى',
+  yaa:   'ي',
+  zay:   'ز',
+}
+
 export default function SignToText() {
   const nav = useNavigate()
+  const { uiLang, t } = useApp()
 
-  useEffect(() => {
-    console.log("✅ NEW FRONTEND VERSION LOADED (Streamlit Pipeline Active)");
-  }, []);
-
-  const [lang,         setLang]         = useState('en')
+  const [lang,         setLang]         = useState(() => uiLang)
   const [cameraOn,     setCameraOn]     = useState(false)
   const [detected,     setDetected]     = useState(null)
   const [conf,         setConf]         = useState(0)
@@ -24,7 +58,6 @@ export default function SignToText() {
   const [streakCount,  setStreakCount]  = useState(0)
 
   const videoRef      = useRef(null)
-  const annotatedRef  = useRef(null)   // <img> showing server-annotated frame
   const wsRef         = useRef(null)
   const streamRef     = useRef(null)
   const sendCanvas    = useRef(document.createElement('canvas'))
@@ -32,19 +65,22 @@ export default function SignToText() {
   // Streak state in a ref so it's always current inside the WS callback
   const streakRef = useRef({ letter: null, count: 0, grace: 0 })
   const sending   = useRef(false)
+  // Language ref — keeps handleMessage up-to-date without re-registering it
+  const langRef   = useRef(lang)
+  useEffect(() => { langRef.current = lang }, [lang])
 
   const handleMessage = useCallback((data) => {
     // We received a reply from the server, so we can send the next frame!
     sending.current = false
 
-    const { letter, conf, annotated_frame } = data
+    const { letter, conf } = data
 
-    // Show the server-rendered frame with green dots directly
-    if (annotatedRef.current && annotated_frame) {
-      annotatedRef.current.src = 'data:image/jpeg;base64,' + annotated_frame
-    }
+    // For Arabic mode, map the model's English label to the actual Arabic character
+    const displayLetter = (letter && langRef.current === 'ar')
+      ? (AR_LABEL_TO_CHAR[letter.toLowerCase()] ?? letter)
+      : letter
 
-    setDetected(letter)
+    setDetected(displayLetter)
     setConf(conf || 0)
 
     const sk = streakRef.current
@@ -69,7 +105,7 @@ export default function SignToText() {
         } else if (action === 'del' || action === 'delete') {
           setTextBuffer(b => b.slice(0, -1))
         } else {
-          setTextBuffer(b => b + letter.toUpperCase())
+          setTextBuffer(b => b + (displayLetter ?? letter))
         }
       }
     } else {
@@ -90,8 +126,6 @@ export default function SignToText() {
     if (!cameraOn) {
       streamRef.current?.getTracks().forEach(t => t.stop())
       wsRef.current?.close()
-      // Clear the annotated image
-      if (annotatedRef.current) annotatedRef.current.src = ''
       setDetected(null)
       setStreakLetter(null)
       setStreakCount(0)
@@ -164,8 +198,8 @@ export default function SignToText() {
   return (
     <div className={styles.root}>
       <div className={styles.topbar}>
-        <button className="btn btn-ghost" onClick={() => nav('/')}>← Back</button>
-        <h1 className={styles.title}>Sign to Text</h1>
+        <button className="btn btn-ghost" onClick={() => nav('/')}>{t.back}</button>
+        <h1 className={styles.title}>{t.s2t_title}</h1>
         <LangToggle lang={lang} onChange={l => { setLang(l); clearBuffer() }} />
       </div>
 
@@ -173,31 +207,16 @@ export default function SignToText() {
         {/* Camera feed — shows annotated frame from server with green dots */}
         <div className={styles.camCol}>
           <div className={styles.camWrap}>
-            {/* Live video feed — visible so user sees themselves immediately */}
+            {/* Live video feed */}
             <video
               ref={videoRef}
               autoPlay muted playsInline
               className={styles.video}
               style={{ transform: 'scaleX(-1)' }}
             />
-            {/* Server-annotated frame with green landmark dots — overlays the video */}
-            {cameraOn && (
-              <img
-                ref={annotatedRef}
-                alt=""
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  transform: 'scaleX(-1)',
-                }}
-              />
-            )}
             {!cameraOn && (
               <div className={styles.camPlaceholder}>
-                <span>📷</span><p>Camera is off</p>
+                <span>📷</span><p>{t.cameraOff}</p>
               </div>
             )}
             {detected && (
@@ -212,7 +231,7 @@ export default function SignToText() {
             className={`btn ${cameraOn ? 'btn-ghost' : 'btn-primary'} ${styles.camBtn}`}
             onClick={() => setCameraOn(v => !v)}
           >
-            {cameraOn ? '⏹ Stop camera' : '▶ Start camera'}
+            {cameraOn ? t.stopCamera : t.startCamera}
           </button>
         </div>
 
@@ -224,18 +243,14 @@ export default function SignToText() {
             streakPct={streakPct}
           />
           <div className={styles.controls}>
-            <button className="btn btn-ghost" onClick={() => setTextBuffer(b => b.slice(0, -1))}>⌫ Delete</button>
-            <button className="btn btn-ghost" onClick={clearBuffer}>🗑 Clear</button>
-            <button className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(textBuffer)} disabled={!textBuffer}>📋 Copy</button>
+            <button className="btn btn-ghost" onClick={() => setTextBuffer(b => b.slice(0, -1))}>{t.delete}</button>
+            <button className="btn btn-ghost" onClick={clearBuffer}>{t.clear}</button>
+            <button className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(textBuffer)} disabled={!textBuffer}>{t.copy}</button>
           </div>
         </div>
       </div>
 
-      <div className={styles.tip}>
-        Hold a sign steady for ~0.8s to type it &nbsp;·&nbsp;
-        Sign <strong>SPACE</strong> to add a space &nbsp;·&nbsp;
-        Sign <strong>DEL</strong> to delete
-      </div>
+      <div className={styles.tip}>{t.tip}</div>
     </div>
   )
 }

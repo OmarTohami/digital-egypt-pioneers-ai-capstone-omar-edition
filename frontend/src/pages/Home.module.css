@@ -8,6 +8,44 @@
   overflow: hidden;
 }
 
+/* Language toggle — fixed top-right */
+.langBar {
+  position: fixed;
+  top: 20px;
+  inset-inline-end: 24px;   /* works for both LTR and RTL */
+  display: flex;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  z-index: 100;
+}
+
+.langBtn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.langBtn:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.langBtnActive {
+  background: var(--purple);
+  color: #fff;
+}
+
+
 .glow {
   position: absolute;
   width: 600px; height: 600px;
