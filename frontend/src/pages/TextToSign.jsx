@@ -5,8 +5,9 @@ import LangToggle   from '../components/LangToggle'
 import HandSkeleton from '../components/HandSkeleton'
 import styles from './TextToSign.module.css'
 
-const API = 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const DELAY_MS = 1200   // ms per letter during auto-play
+
 
 export default function TextToSign() {
   const nav = useNavigate()
