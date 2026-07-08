@@ -213,3 +213,14 @@ async def transcribe(audio: UploadFile = File(...), language: str = Form("en")):
 
     except Exception as e:
         return {"error": str(e)}
+
+
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Serve the React build folder (production only)
+if os.path.isdir("../frontend/dist"):
+    app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="static")
+
+
+
