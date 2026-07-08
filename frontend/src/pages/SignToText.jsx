@@ -7,7 +7,7 @@ import styles from './SignToText.module.css'
 
 const STREAK_THRESHOLD = 10    // frames to hold a sign
 const GRACE_FRAMES     = 4     // frames of "nothing" before streak resets
-const WS_URL           = 'ws://localhost:8000/ws/sign-to-text'
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/sign-to-text'
 
 // Maps ARSL model labels → Arabic characters
 const AR_LABEL_TO_CHAR = {
