@@ -3,12 +3,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install system dependencies (updated for Debian Trixie)
-# Added libglib2.0-0 for OpenCV/cv2 and libgles2-mesa for MediaPipe
+# Replaced libgles2-mesa with libgles2 (Debian Trixie package rename)
 RUN apt-get update && apt-get install -y \
     libsm6 libxext6 libxrender-dev \
     libgl1 \
     libglib2.0-0 \
-    libgles2-mesa \
+    libgles2 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
