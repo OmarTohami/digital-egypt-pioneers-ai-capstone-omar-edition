@@ -2,10 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (updated for Debian Trixie)
 RUN apt-get update && apt-get install -y \
     libsm6 libxext6 libxrender-dev \
-    libgl1-mesa-glx \
+    libgl1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ .
 
-# Expose port
+# Expose port (Railway sets $PORT dynamically)
 EXPOSE 8000
 
-# Run the app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the app with dynamic port support for Railway
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
